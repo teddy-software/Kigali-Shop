@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KigaliStyle Shop — Rwandan Fashion Online</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-logo">🌿 KigaliStyle <span>Shop</span></a>
+    <button class="hamburger" id="hamburger">☰</button>
+    <div class="navbar-links" id="navbar-links">
+      <a href="/" class="active">Home</a>
+      <a href="/products.html">Shop</a>
+      <a href="/cart.html" class="cart-btn">🛒 Cart <span class="cart-count" id="cart-count" style="display:none">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">🇷🇼 Made in Rwanda</div>
+    <h1>African Fashion <em>Reimagined</em> for the Modern World</h1>
+    <p>Discover authentic Rwandan kitenge, Ankara prints, and handcrafted fashion — delivered to your door.</p>
+    <a href="/products.html" class="btn-hero">Shop the Collection →</a>
+  </div>
+</section>
+
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div class="stat"><div class="stat-num">12+</div><div class="stat-label">Products</div></div>
+    <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Made in Rwanda</div></div>
+    <div class="stat"><div class="stat-num">Free</div><div class="stat-label">Delivery in Kigali</div></div>
+    <div class="stat"><div class="stat-num">7</div><div class="stat-label">Categories</div></div>
+  </div>
+</div>
+
+<section class="section">
+  <div class="section-header">
+    <h2 class="section-title">Shop by <span>Category</span></h2>
+    <a href="/products.html" class="view-all">View all →</a>
+  </div>
+  <div class="categories-grid" id="home-categories">
+    <div class="loading"><div class="spinner"></div>Loading...</div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="section-header">
+    <h2 class="section-title">Featured <span>Products</span></h2>
+    <a href="/products.html" class="view-all">View all →</a>
+  </div>
+  <div class="products-grid" id="featured-products">
+    <div class="loading"><div class="spinner"></div>Loading...</div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">🌿 KigaliStyle Shop</div>
+  <p>Authentic Rwandan fashion, crafted with love. © 2026</p>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+  fetch('/api/categories').then(r => r.json()).then(cats => {
+    document.getElementById('home-categories').innerHTML =
+      '<a href="/products.html" class="cat-pill active">All</a>' +
+      cats.map(c => `<a href="/products.html?cat=${encodeURIComponent(c)}" class="cat-pill">${c}</a>`).join('');
+  });
+
+  fetch('/api/products').then(r => r.json()).then(products => {
+    document.getElementById('featured-products').innerHTML = products.slice(0,8).map(p => `
+      <div class="product-card" onclick="window.location='/product.html?id=${p.id}'">
+        <img src="${p.image_url}" alt="${p.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=400'">
+        <div class="product-card-body">
+          <div class="product-category">${p.category}</div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-price">${formatPrice(p.price)}</div>
+        </div>
+        <div class="product-card-footer">
+          <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart(${p.id})">+ Add to Cart</button>
+          <a href="/product.html?id=${p.id}" class="btn-view" onclick="event.stopPropagation()">View</a>
+        </div>
+      </div>
+    `).join('');
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop — KigaliStyle</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-logo">🌿 KigaliStyle <span>Shop</span></a>
+    <button class="hamburger" id="hamburger">☰</button>
+    <div class="navbar-links" id="navbar-links">
+      <a href="/">Home</a>
+      <a href="/products.html" class="active">Shop</a>
+      <a href="/cart.html" class="cart-btn">🛒 Cart <span class="cart-count" id="cart-count" style="display:none">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <h1>Our Collection</h1>
+    <p>Authentic Rwandan fashion & accessories</p>
+  </div>
+</div>
+
+<section class="section">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+    <div class="categories-grid" id="cat-filters" style="margin:0">
+      <button class="cat-pill active" data-cat="all">All</button>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Search products..." oninput="filterProducts()">
+    </div>
+  </div>
+  <div id="product-count" style="color:var(--text-light);font-size:14px;margin-bottom:16px;"></div>
+  <div class="products-grid" id="products-grid">
+    <div class="loading"><div class="spinner"></div>Loading products...</div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">🌿 KigaliStyle Shop</div>
+  <p>Authentic Rwandan fashion © 2026</p>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+  let allProducts = [];
+  let activeCategory = new URLSearchParams(window.location.search).get('cat') || 'all';
+
+  fetch('/api/categories').then(r => r.json()).then(cats => {
+    document.getElementById('cat-filters').innerHTML =
+      `<button class="cat-pill ${activeCategory==='all'?'active':''}" data-cat="all" onclick="setCat('all')">All</button>` +
+      cats.map(c => `<button class="cat-pill ${activeCategory===c?'active':''}" data-cat="${c}" onclick="setCat('${c}')">${c}</button>`).join('');
+  });
+
+  fetch('/api/products').then(r => r.json()).then(p => { allProducts = p; renderProducts(); });
+
+  function setCat(cat) {
+    activeCategory = cat;
+    document.querySelectorAll('.cat-pill').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+    renderProducts();
+  }
+
+  function filterProducts() { renderProducts(); }
+
+  function renderProducts() {
+    const search = document.getElementById('search-input').value.toLowerCase();
+    let filtered = allProducts;
+    if (activeCategory !== 'all') filtered = filtered.filter(p => p.category === activeCategory);
+    if (search) filtered = filtered.filter(p => p.name.toLowerCase().includes(search) || p.description.toLowerCase().includes(search));
+    document.getElementById('product-count').textContent = `Showing ${filtered.length} product${filtered.length !== 1 ? 's' : ''}`;
+    document.getElementById('products-grid').innerHTML = !filtered.length
+      ? `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-light)"><div style="font-size:48px">🔍</div><p>No products found.</p></div>`
+      : filtered.map(p => `
+        <div class="product-card" onclick="window.location='/product.html?id=${p.id}'">
+          <img src="${p.image_url}" alt="${p.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=400'">
+          <div class="product-card-body">
+            <div class="product-category">${p.category}</div>
+            <div class="product-name">${p.name}</div>
+            <div class="product-price">${formatPrice(p.price)}</div>
+          </div>
+          <div class="product-card-footer">
+            <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart(${p.id})">+ Add to Cart</button>
+            <a href="/product.html?id=${p.id}" class="btn-view" onclick="event.stopPropagation()">View</a>
+          </div>
+        </div>`).join('');
+  }
+</script>
+</body>
+</html>

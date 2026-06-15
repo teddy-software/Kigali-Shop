@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed — KigaliStyle</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-logo">🌿 KigaliStyle <span>Shop</span></a>
+    <div class="navbar-links" id="navbar-links">
+      <a href="/">Home</a>
+      <a href="/products.html">Shop</a>
+      <a href="/cart.html" class="cart-btn">🛒 Cart <span class="cart-count" id="cart-count" style="display:none">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="confirm-page">
+  <div class="confirm-icon">🎉</div>
+  <h1>Order Confirmed!</h1>
+  <p>Thank you for shopping with KigaliStyle!</p>
+  <div class="order-number">Order #<span id="order-id">—</span></div>
+  <div class="confirm-details" id="order-details">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius);padding:20px;text-align:left;margin-top:20px">
+    <h4 style="color:#166534;margin-bottom:8px">📦 What happens next?</h4>
+    <ol style="color:#166534;padding-left:20px;font-size:14px;line-height:2">
+      <li>You'll receive an email confirmation</li>
+      <li>Our team will confirm within 2 hours</li>
+      <li>We'll call to arrange delivery</li>
+      <li>Delivery within 1–3 business days in Kigali</li>
+    </ol>
+  </div>
+  <div class="confirm-actions">
+    <a href="/products.html" class="btn-outline">Continue Shopping</a>
+    <a href="/" class="btn-filled">Back to Home</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">🌿 KigaliStyle Shop</div>
+  <p>Authentic Rwandan fashion © 2026</p>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const orderId = params.get('order');
+  if (!orderId) window.location = '/';
+  document.getElementById('order-id').textContent = orderId;
+
+  fetch(`/api/orders/${orderId}`).then(r => r.json()).then(data => {
+    const { order, items } = data;
+    const shipping = order.total >= 50000 ? 0 : 2000;
+    document.getElementById('order-details').innerHTML = `
+      ${items.map(i => `
+        <div style="display:flex;gap:12px;margin-bottom:12px;align-items:center">
+          <img src="${i.image_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px">
+          <div style="flex:1"><div style="font-size:14px;font-weight:600">${i.product_name}</div><div style="font-size:13px;color:var(--text-light)">Qty: ${i.quantity}</div></div>
+          <div style="font-weight:700">${formatPrice(i.quantity * i.unit_price)}</div>
+        </div>`).join('')}
+      <div class="detail-row"><span>Customer</span><span>${order.name}</span></div>
+      <div class="detail-row"><span>Phone</span><span>${order.phone}</span></div>
+      <div class="detail-row"><span>Delivery to</span><span>${order.address}</span></div>
+      <div class="detail-row"><span>Total</span><span>${formatPrice(order.total + shipping)}</span></div>`;
+  });
+  updateCartCount();
+</script>
+</body>
+</html>
